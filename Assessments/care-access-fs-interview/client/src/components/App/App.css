@@ -1,4 +1,7 @@
 .App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   text-align: center;
 }
 
@@ -15,6 +18,14 @@
 
 .App-intro {
   font-size: large;
+}
+
+main {
+  flex: 1;
+}
+
+footer {
+  text-align: center;
 }
 
 .logo-white {

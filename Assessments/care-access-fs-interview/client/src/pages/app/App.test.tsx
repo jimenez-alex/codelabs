@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import App from "./App";
+
+import { App } from "./App";
 
 // Mocked Api calls module to prevent changes to production
-jest.mock("../Api/Api", () => ({
+jest.mock("../users/components/userapi/UserApi", () => ({
   getUsers: jest.fn(),
   createUser: jest.fn(),
   updateUser: jest.fn(),

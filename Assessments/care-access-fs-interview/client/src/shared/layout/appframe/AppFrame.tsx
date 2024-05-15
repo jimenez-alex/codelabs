@@ -2,7 +2,7 @@ import React from "react";
 
 import { Footer } from "../footer/Footer";
 import { Header } from "../header/Header";
-import { StatusUpdateProvider } from "../statusupdate/StatusUpdate";
+import { StatusUpdateProvider } from "../statusupdate/StatusUpdateContext";
 import "./AppFrame.css";
 
 interface AppFrameProps {

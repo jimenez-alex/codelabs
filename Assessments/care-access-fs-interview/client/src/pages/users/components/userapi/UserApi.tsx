@@ -1,177 +1,87 @@
-import React from "react";
-
-import axios, { AxiosError } from "axios";
-import {
-  API_BASE_URL,
-  Email,
-  ErrorResponse,
-  User,
-  headers,
-  isEmail,
-} from "./UserApiCommon";
-import { UserActions } from "./UserActionsEnums";
+import { API_BASE_URL, User, headers, isEmail } from "./UserApiCommon";
 
 /**
- * GET request function to retrieve all users.
- * @returns Promise<User[]> - A promise that resolves to an array of users.
+ * Handles the HTTP response by checking for errors and returning the JSON data.
+ * @template T - The expected type of the response data.
+ * @param {Response} response - The response object to handle.
+ * @returns {Promise<T>} - A promise that resolves to the response data.
+ * @throws {Error} - Throws an error if the response is not OK or if data parsing fails.
  */
-export const getUsers = async (): Promise<User[]> => {
-  try {
-    const response = await axios.get<{ users: User[] }>(
-      `${API_BASE_URL}/api/users`,
-      { headers }
-    );
-    return response.data.users;
-  } catch (error) {
-    const axiosError = error as AxiosError<ErrorResponse>;
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const errorData: { error?: string } = await response.json();
     throw new Error(
-      axiosError.response?.data.error ||
-        "An error occurred while fetching users."
+      errorData.error || "An error occurred while fetching data."
     );
   }
-};
+  return response.json();
+}
 
 /**
- * GET request function to retrieve a single user by ID.
- * @param id - The unique identifier of the user.
- * @returns Promise<User> - A promise that resolves to the user object.
+ * Retrieves all users from the API.
+ * @returns {Promise<User[]>} - A promise that resolves to an array of User objects.
  */
-export const getUser = async (id: User["id"]): Promise<User> => {
-  try {
-    const response = await axios.get<User>(`${API_BASE_URL}/api/users/${id}`, {
-      headers,
-    });
-    return response.data;
-  } catch (error) {
-    const axiosError = error as AxiosError<ErrorResponse>;
-    throw new Error(
-      axiosError.response?.data.error ||
-        `An error occurred while fetching user with ID: ${id}.`
-    );
-  }
-};
+export async function getUsers(): Promise<User[]> {
+  const response = await fetch(`${API_BASE_URL}/api/users`, { headers });
+  const data: { users: User[] } = await handleResponse(response);
+  return data.users;
+}
 
 /**
- * POST request function to create a new user.
- * @param name - The name of the user to create.
- * @param email - The email string of the user to create.
- * @returns Promise<User> - A promise that resolves to the newly created user object.
+ * Retrieves a single user by ID from the API.
+ * @param {User['id']} id - The unique identifier of the user.
+ * @returns {Promise<User>} - A promise that resolves to a User object.
  */
-export const createUser = async (
-  user: User
-): Promise<User> => {
+export async function getUser(id: User["id"]): Promise<User> {
+  const response = await fetch(`${API_BASE_URL}/api/users/${id}`, { headers });
+  return handleResponse(response);
+}
+
+/**
+ * Creates a new user with the provided details.
+ * @param {User} user - The user details to create.
+ * @returns {Promise<User>} - A promise that resolves to the newly created User object.
+ * @throws {Error} - Throws an error if the email format is invalid.
+ */
+export async function createUser(user: User): Promise<User> {
   if (!isEmail(user.email)) {
     throw new Error("Invalid email format.");
   }
-
-  const validEmail: Email = { value: user.email };
-
-  try {
-    const response = await axios.post<User>(
-      `${API_BASE_URL}/api/users`,
-      { name: user.name, email: validEmail.value },
-      { headers }
-    );
-    return response.data;
-  } catch (error) {
-    const axiosError = error as AxiosError<ErrorResponse>;
-    throw new Error(
-      axiosError.response?.data.error ||
-        "An error occurred while creating a new user."
-    );
-  }
-};
+  const response = await fetch(`${API_BASE_URL}/api/users`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ name: user.name, email: user.email }),
+  });
+  return handleResponse(response);
+}
 
 /**
- * DELETE request function to delete a user by ID.
- * @param id - The unique identifier of the user to delete.
- * @returns Promise<{ success: boolean }> - A promise that resolves to an object indicating the success of the operation.
+ * Deletes a user by their ID.
+ * @param {User} user - The user to delete.
+ * @returns {Promise<{ success: boolean }>} - A promise that resolves to an object indicating the success of the operation.
  */
-export const deleteUser = async (
-  user: User
-): Promise<{ success: boolean }> => {
-  try {
-    const response = await axios.delete<{ success: boolean }>(
-      `${API_BASE_URL}/api/users/${user.id}`,
-      { headers }
-    );
-    return response.data;
-  } catch (error) {
-    const axiosError = error as AxiosError<ErrorResponse>;
-    throw new Error(
-      axiosError.response?.data.error ||
-        `An error occurred while deleting user with ID: ${user.id}.`
-    );
-  }
-};
+export async function deleteUser(user: User): Promise<{ success: boolean }> {
+  const response = await fetch(`${API_BASE_URL}/api/users/${user.id}`, {
+    method: "DELETE",
+    headers,
+  });
+  return handleResponse(response);
+}
 
 /**
- * PATCH request function to update a user's details by ID.
- * @param id - The unique identifier of the user to update.
- * @param name - The new name of the user.
- * @param email - The new email string of the user.
- * @returns Promise<User> - A promise that resolves to the updated user object.
+ * Updates a user's details by their ID.
+ * @param {User} user - The user details to update.
+ * @returns {Promise<User>} - A promise that resolves to the updated User object.
+ * @throws {Error} - Throws an error if the email format is invalid.
  */
-export const updateUser = async (
-  // id: User["id"],
-  // name: User["name"],
-  // email: Email["value"]
-  user: User
-): Promise<User> => {
+export async function updateUser(user: User): Promise<User> {
   if (user.email && !isEmail(user.email)) {
     throw new Error("Invalid email format.");
   }
-
-  const validEmail: Email = { value: user.email };
-
-  try {
-    const response = await axios.patch<User>(
-      `${API_BASE_URL}/api/users/${user.id}`,
-      { name: user.name, email: validEmail?.value },
-      { headers }
-    );
-    return response.data;
-  } catch (error) {
-    const axiosError = error as AxiosError<ErrorResponse>;
-    throw new Error(
-      axiosError.response?.data.error ||
-        `An error occurred while updating user with ID: ${user.id}.`
-    );
-  }
-};
-
-/**
- * Custom hook for fetching all users from the server.
- *
- * @returns {object} An object containing:
- * - `users`: An array of `User` objects representing the users.
- * - `error`: A string describing the error if one occurred during the fetch.
- * - `isLoading`: A boolean indicating whether the request is in progress.
- * - `getUsers`: A function that initiates the fetch operation.
- */
-export const useActionUser = (actionType: UserActions) => {
-  const [users, setUsers] = React.useState<User[]>([]);
-  const [error, setError] = React.useState<string | null>(null);
-  const [isLoading, setIsLoading] = React.useState(false);
-
-  const getUsers = async (): Promise<void> => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get<{ users: User[] }>(
-        `${API_BASE_URL}/api/users`,
-        { headers }
-      );
-      setUsers(response.data.users);
-    } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      setError(
-        axiosError.response?.data.error ||
-          "An error occurred while fetching users."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return { users, error, isLoading, getUsers };
-};
+  const response = await fetch(`${API_BASE_URL}/api/users/${user.id}`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({ name: user.name, email: user.email }),
+  });
+  return handleResponse(response);
+}

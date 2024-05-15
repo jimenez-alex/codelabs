@@ -10,7 +10,7 @@ import {
   TextField,
 } from "@mui/material";
 
-import { useStatusUpdate } from "../../../../shared/layout/statusupdate/StatusUpdate";
+import { useStatusUpdate } from "../../../../shared/layout/statusupdate/StatusUpdateContext";
 import { UserActions, actionMapping } from "../userapi/UserActionsEnums";
 import { User, emailRegex } from "../userapi/UserApiCommon";
 import { useUsers } from "../userapi/UsersContext";

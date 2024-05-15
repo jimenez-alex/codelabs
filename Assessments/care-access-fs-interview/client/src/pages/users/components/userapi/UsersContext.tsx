@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useStatusUpdate } from "../../../../shared/layout/statusupdate/StatusUpdate";
+import { useStatusUpdate } from "../../../../shared/layout/statusupdate/StatusUpdateContext";
 import { getUsers } from "./UserApi";
 import { User } from "./UserApiCommon";
 
